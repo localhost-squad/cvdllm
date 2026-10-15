@@ -7,7 +7,10 @@ authors = [
     { name = "sudhanshunitinatalkar", email = "atalkarsudhanshu@proton.me" }
 ]
 requires-python = ">=3.14"
-dependencies = [ "cactus-needle" ]
+dependencies = [
+ "cactus-needle",
+ "customtkinter>=6.0.0",
+]
 
 [project.scripts]
 fyproject = "fyproject:main"
