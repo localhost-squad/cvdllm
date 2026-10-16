@@ -1,0 +1,33 @@
+[project]
+name = "cvdllm"
+version = "0.1.0"
+description = "NA"
+readme = "README.md"
+authors = [
+    { name = "sudha", email = "0xnryn@proton.me" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "cactus-needle",
+    "cryptography>=50.0.2",
+    "customtkinter>=6.0.0",
+    "eel>=0.18.2",
+    "flet>=1.0.4",
+    "nicegui>=3.18.0",
+    "pyqt6>=6.11.0",
+    "python-dotenv>=1.2.4",
+    "pywebview>=6.2.1",
+]
+
+[project.scripts]
+cvdllm = "cvdllm.main:main"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cvdllm", "src/tpm"]
