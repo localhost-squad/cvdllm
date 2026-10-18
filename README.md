@@ -1,6 +1,80 @@
-# Determinism Test
+## Cryptographically Verifiable Deterministic LLM
+
+Traditional AI models are non-deterministic black boxes that lack audit trails and provenance. The **Cryptographically Verifiable Deterministic LLM (`cvdllm`)** solves this by bridging strict hardware-enforced determinism with hardware-backed cryptographic signing. By enforcing single-threaded CPU execution, zero temperature, and a fixed seed, the system guarantees a byte-for-byte identical output and SHA-256 hash across every run. Each response is bundled into a timestamped payload and securely signed using a physical **Trusted Platform Module (TPM)**. The result is absolute accountability: anyone can use the payload, signature, and public key to independently verify the exact integrity and authenticity of the AI's output down to the bit.
+
+
+
+### Step 1: Install Package Manager & Tools (Nix)
+
+If you are using Nix as your package manager to fetch system dependencies like `tpm2-tools`, `openssl`, and `git`:
+
 ```bash
-[sudha@0xnryn-laptop0:~/fyproject]$ uv run python -m cvdllm.determinism_test
+# Install Nix (Single-user installation)
+sh <(curl -L https://nixos.org/nix/install) --no-daemon
+
+# Load Nix environment (if prompted)
+. ~/.nix-profile/etc/profile.d/nix.sh
+
+# Install required system tools via Nix or your system package manager (apt/pacman)
+nix-env -iA nixpkgs.tpm2-tools nixpkgs.openssl nixpkgs.xxd nixpkgs.python3
+
+```
+
+---
+
+### Step 2: Set Up User Permissions to TPM (`tss`)
+
+To allow your user account to communicate with the hardware TPM device (`/dev/tpmrm0`) without always needing `sudo`, add your user to the system's TPM group (`tss` or `tpms`):
+
+```bash
+# Add current user to the tss group
+sudo usermod -aG tss $USER
+
+# Apply group changes immediately in your current shell session
+newgrp tss
+
+# Verify you have read/write access to the TPM resource manager
+ls -la /dev/tpmrm0
+
+```
+
+---
+
+### Step 3: Select and Verify TPM Persistent Handle
+
+Choose a persistent memory slot/address (e.g., `0x81010002`) to store your cryptographic signing key inside the TPM.
+
+* **Check existing persistent handles:**
+```bash
+tpm2_getcap handles-persistent -T device:/dev/tpmrm0
+
+```
+
+
+* **Read the public key at your selected address (DER format encoded in Base64):**
+```bash
+tpm2_readpublic -c 0x81010002 -f der -T device:/dev/tpmrm0 | base64 -w 0
+
+```
+
+
+
+---
+
+### Step 4: Run the Determinism Test
+
+Verify that your local CPU inference engine (`llama-cpp-python` with single-thread CPU constraints and seed locking) produces 100% identical outputs and SHA-256 hashes across sequential runs.
+
+**Command:**
+
+```bash
+uv run python -m cvdllm.determinism_test
+
+```
+
+**Result:**
+
+```text
 Loading model (qwen2.5-0.5b-instruct-q4_k_m.gguf) from repo (Qwen/Qwen2.5-0.5B-Instruct-GGUF)...
 
 Prompt: 'In one concise sentence, what is a CPU register?'
@@ -24,20 +98,28 @@ Run 05 | SHA-256: 9eb58e47c4b0a4accc0068fb88c3d4ef1eafa028fcd869baff18ee8c01ee70
 ======================================================================
 VERIFICATION SUCCESS: All 5 runs produced 100% identical outputs!
 
-[sudha@0xnryn-laptop0:~/fyproject]$ 
 ```
 
-# Cryptographic Verification
-### Input:
+---
+
+### Step 5: Run Cryptographic Verification Chat (`cvdllm`)
+
+Launch the interactive tool to chat with the model, generate hardware-backed cryptographic signatures via the TPM, and verify them.
+
+**Command:**
+
 ```bash
 uv run cvdllm
+
 ```
-### Output:
-```bash
+
+**Result:**
+
+```text
 TPM Public Key:
 LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUE0cXpEd2dGZkNlQ0FQaTcvYS9KRwo5SDBvMUhlUFhqUXdVSEhpUThlRXdtVEEwe
 CtWSTFuV2JHMkl3c1NEcTBtU2FraDBvOFA0TUpDOHpRSExDWFpDCjRubzQ3YmFtcVhwNmpzV21iQnJDQ2F6TFZLdHd1eUtyQVh1bWxkQVRKMW4zL2RCMDhqZFh2VTJEYWhhZWVvTXQKUjRKbW9sZ0czazZvbl
-RrQUROSHpHWXV6dEdaZXNKRGthUlY5clhQcEpJVE9GZjAxV0tvMGxSeHhyS0RvSjdlNgo5MnFpVGRlWEM0b0xKSnpiNWVpU0IzSEhNYWJoeS82a21JakZES2NGYkdCTGI5dHdLZlo5QloyRHVZcWtNNWRPCjF
+RrQUROSHpHWXV6dEdaZXNKRGthUlY5clhQcEpJVE9GZjAxV0tvMGxSeHhyS0RvJjdlNgo5MnFpVGRlWEM0b0xKSnpiNWVpU0IzSEhNYWJoeS82a21JakZES2NGYkdCTGI5dHdLZlo5QloyRHVZcWtNNWRPCjF
 WbzhmdXhWaFdGcjR2QjE0REVJY1d2VlRrMG9WallLemYrd1R6MG1NdnYxQVErQWtQd042L1JMUTJxL1FHYTYKbFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
 
 ╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
@@ -57,8 +139,7 @@ WbzhmdXhWaFdGcjR2QjE0REVJY1d2VlRrMG9WallLemYrd1R6MG1NdnYxQVErQWtQd042L1JMUTJxL1F
 ─── Verification Payload ───
 Raw JSON for external hashing:
 {
-  "response": "Cryptography verification is crucial for ensuring the security and integrity of machine learning (ML) systems, preventing unauthorized access 
-and data breaches.",
+  "response": "Cryptography verification is crucial for ensuring the security and integrity of machine learning (ML) systems, preventing unauthorized access and data breaches.",
   "timestamp": "2026-10-18T14:59:49.200461+00:00"
 }
 
@@ -73,35 +154,14 @@ Vom9N1Ic+X5VAIwylXGXkKYYp8bQ==
 Verification Status:
 TRUE
 
-❯ 
 ```
+---
 
+### Built-in Verification (Python)
 
+Inside your app (`cvdllm`), verification is handled automatically by calling the verify module. You can also run the verification script directly via `uv`:
 
-
-
-# read the key
-tpm2_readpublic -c 0x81010002 -f der -T device:/dev/tpmrm0 | base64 -w 0
-
-# delete the key
-tpm2_evictcontrol -C o -c 0x81010002 -T device:/dev/tpmrm0
-
-# sign a hash using the tpm
-echo -n "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" | xxd -r -p | tpm2_sign -c 0x81010002 -g sha256 -o /dev/stdout -T device:/dev/tpmrm0 2>/dev/null | base64 -w 0
-
-# read the current persistant addresses
-tpm2_getcap handles-persistent
-
-tpm2_getcap handles-persistent -T device:/dev/tpmrm0
-
-hash a pay load
 ```bash
-cat | sha256sum | awk '{print "\n\n ➔ " $1}'
+uv run python -m tpm.verify <SHA256_HASH> <BASE64_SIGNATURE>
+
 ```
-
-verify the signature
-```bash
-uv run uv run python -m tpm.verify  2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 XCvCG3hLdkRDku5Z1dtpzlQ7MdGLRcDH4obvgGxFUlifFmWMRTmQE71+wIbml+2n987yuj3moLgd8MD9btSjeTreCtcchpvuNj97IrLgwugmuMd5PYU0iA0h4NuG1DvzHW4pKdTaXLDhRZGqbOOOHgBNiFAtw0F7GoP1wivErmwnD4dlpE82OOHV1PXB/zNbrLcwwVxkwF/PnRvQ7dtg88mL69YWFmPjukym+8e3wlINQQyXGjAPn3dzXH5ysiHGg1bG4aHBWnvFPxscq73aYdKCiVFbYZ2U7dIHdt2LryaJaZQjwC1oHJuXaycVkc4VTrb1VDAlTliCJvpqul7jYA==
-```
-
-
