@@ -1,44 +1,86 @@
-# src/fyproject/test_determinism.py
-import json
+import os
 import hashlib
-from cvdllm.main import agent
+from dotenv import load_dotenv
+from huggingface_hub import hf_hub_download
+from huggingface_hub.utils import LocalEntryNotFoundError
+from llama_cpp import Llama
 
-def test_determinism() -> None:
-    prompt = "What's the weather like in Lagos right now?"
+# Load environment variables from .env first
+load_dotenv()
+
+# Retrieve all configuration and input parameters from the environment
+REPO_ID = os.getenv("REPO_ID")
+FILENAME = os.getenv("MODELNAME")
+CONTEXT_LENGTH = int(os.getenv("context_length", "8192"))
+QUESTION = os.getenv("QUESTION", "In one concise sentence, what is a CPU register?")
+RUNS = int(os.getenv("RUNS", "5"))
+
+
+def get_model_path() -> str:
+    """Attempts local cache retrieval first to avoid HF API calls."""
+    try:
+        return hf_hub_download(
+            repo_id=REPO_ID,
+            filename=FILENAME,
+            local_files_only=True,
+        )
+    except (LocalEntryNotFoundError, Exception):
+        return hf_hub_download(
+            repo_id=REPO_ID,
+            filename=FILENAME,
+        )
+
+
+def main() -> None:
+    if not REPO_ID or not FILENAME:
+        print("Error: REPO_ID or MODELNAME not found in environment variables or .env file.")
+        return
+
+    print(f"Loading model ({FILENAME}) from repo ({REPO_ID})...")
+    model_path = get_model_path()
+
+    # Initialize single-threaded engine for deterministic execution
+    llm = Llama(
+        model_path=model_path,
+        n_threads=1,            # 1 core eliminates thread-ordering noise
+        use_mlock=True,         # Lock weights in RAM
+        n_ctx=CONTEXT_LENGTH,   # Loaded dynamically from environment
+        verbose=False,
+    )
+
+    messages = [
+        {"role": "system", "content": "You are a concise technical expert."},
+        {"role": "user", "content": QUESTION},
+    ]
+
+    print(f"\nPrompt: '{QUESTION}'")
+    print(f"Executing {RUNS} sequential inference runs...\n" + "=" * 70)
+
     hashes = []
-    
-    for i in range(10):
-        agent.reset() # Clear state
-        response = agent.run(prompt)
-        
-        # EXTRACT EVERY SINGLE LOGICAL/AI PARAMETER POSSIBLE
-        # We explicitly exclude floating-point metrics (tps, ram, confidence) 
-        # because SIMD math causes micro-fluctuations in decimals (e.g., 0.7011 vs 0.7025)
-        semantic_response = {
-            "type": response.get("type"),
-            "success": response.get("success"),
-            "error": response.get("error"),
-            "error_code": response.get("error_code"),
-            "reason": response.get("reason"),
-            "function_calls": response.get("function_calls"),
-            "reasoning": response.get("reasoning"),
-            "results": response.get("results")
-        }
-        
-        # Convert to a deterministic JSON string (sort_keys ensures consistent ordering)
-        json_str = json.dumps(semantic_response, sort_keys=True)
-        
-        # Calculate the SHA-256 hash of the output
-        hash_val = hashlib.sha256(json_str.encode('utf-8')).hexdigest()
-        hashes.append(hash_val)
-        print(f"Run {i+1}: {hash_val}")
-        
-    # Check if all hashes are identical
+
+    for i in range(1, RUNS + 1):
+        # Enforce greedy decoding (temperature=0.0) and fixed seed
+        response = llm.create_chat_completion(
+            messages=messages,
+            max_tokens=40,    # Cap output token count
+            temperature=0.0,  # Argmax selection
+            seed=1337,        # Fixed PRNG state
+        )
+
+        content = response["choices"][0]["message"]["content"].strip()
+        sha256_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        hashes.append(sha256_hash)
+
+        print(f"Run {i:02d} | SHA-256: {sha256_hash}")
+        print(f"       Output:  \"{content}\"\n")
+
+    print("=" * 70)
+    # Verification assertion
     if len(set(hashes)) == 1:
-        print("\nSUCCESS: All logical AI parameters are 100% functionally deterministic.")
+        print(f"VERIFICATION SUCCESS: All {RUNS} runs produced 100% identical outputs!")
     else:
-        print("\n❌ FAILURE: Logical output varied between runs.")
-        print("Differing output:", semantic_response)
+        print(f"VERIFICATION FAILURE: Output drift detected across {len(set(hashes))} unique hashes.")
+
 
 if __name__ == "__main__":
-    test_determinism()
+    main()

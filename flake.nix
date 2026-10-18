@@ -15,16 +15,16 @@
         python314Packages.tpm2-pytss
         python314Packages.python-dotenv
         python314Packages.cryptography
-        libglvnd
-        libxkbcommon
+        dejavu_fonts  # <-- Adds real clean TrueType fonts
+        fontconfig
         tpm2-tss
         pkg-config
         openssl
-        chromium
       ];
       shellHook = ''
-        export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.libglvnd pkgs.mesa ]}:$LD_LIBRARY_PATH"
-      '';
+      export FONTCONFIG_PATH="${pkgs.fontconfig.out}/etc/fonts"
+      export XDG_DATA_DIRS="${pkgs.dejavu_fonts}/share:$XDG_DATA_DIRS"
+    '';
     };
   };
 }

@@ -40,4 +40,4 @@ if __name__ == "__main__":
     print(verify_signature(sys.argv[1], sys.argv[2], pub_key))
 
 # usage
-# python run/verify.py 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 <paste_signature_here>
+# uv run python -m tpm.verify  2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 XCvCG3hLdkRDku5Z1dtpzlQ7MdGLRcDH4obvgGxFUlifFmWMRTmQE71+wIbml+2n987yuj3moLgd8MD9btSjeTreCtcchpvuNj97IrLgwugmuMd5PYU0iA0h4NuG1DvzHW4pKdTaXLDhRZGqbOOOHgBNiFAtw0F7GoP1wivErmwnD4dlpE82OOHV1PXB/zNbrLcwwVxkwF/PnRvQ7dtg88mL69YWFmPjukym+8e3wlINQQyXGjAPn3dzXH5ysiHGg1bG4aHBWnvFPxscq73aYdKCiVFbYZ2U7dIHdt2LryaJaZQjwC1oHJuXaycVkc4VTrb1VDAlTliCJvpqul7jYA==

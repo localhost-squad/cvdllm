@@ -3,7 +3,7 @@ from .create import provision_tpm_rsa_key
 from .delete import evict_tpm_handle
 from .read_public import read_tpm_public
 from .sign_hash import sign_hash
-from .verify import verify_signature
+from .verify_signature import verify_signature
 
 __all__ = [
     "provision_tpm_rsa_key",
@@ -12,3 +12,4 @@ __all__ = [
     "sign_hash",
     "verify_signature",
 ]
+
