@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 import sys
 import base64
+from .read_public import read_tpm_public
 
 def verify_signature(hash_hex: str, sig_b64: str, public_key_b64: str) -> str:
     digest = bytes.fromhex(hash_hex)
@@ -32,7 +33,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     load_dotenv()
-    pub_key = os.getenv("TPM_PUBLIC_KEY")
+    nvram_address = os.getenv("TPM_NVRAM_ADDRESS")
+    tcti = os.getenv("TPM2TOOLS_TCTI")
+    pub_key = read_tpm_public(nvram_address, tcti)
     if not pub_key:
         print("ERROR: TPM_PUBLIC_KEY is not set in .env!", file=sys.stderr)
         sys.exit(1)
