@@ -20,6 +20,7 @@
         tpm2-tss
         pkg-config
         openssl
+        tpm2-tools
       ];
       shellHook = ''
       export FONTCONFIG_PATH="${pkgs.fontconfig.out}/etc/fonts"
