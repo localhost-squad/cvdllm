@@ -165,3 +165,7 @@ Inside your app (`cvdllm`), verification is handled automatically by calling the
 uv run python -m tpm.verify <SHA256_HASH> <BASE64_SIGNATURE>
 
 ```
+
+
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23454877.svg)](https://doi.org/10.5281/zenodo.23454877)
