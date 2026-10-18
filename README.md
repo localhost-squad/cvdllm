@@ -168,7 +168,7 @@ uv run python -m tpm.verify <SHA256_HASH> <BASE64_SIGNATURE>
 
 ```bibtex
 @software{cvdllm_2026,
-  author       = {Sudhanshu Atalkar and Zain Syed and Vedant Ghate and Parth Bhuskade},
+  author       = {Sudhanshu Atalkar and Zain Syed and Vedant Ghate and Parth Bhuskade and Dr. S. R. Gupta},
   title        = {cvdllm: Cryptographically Verifiable Deterministic LLM},
   month        = oct,
   year         = {2026},
@@ -176,7 +176,7 @@ uv run python -m tpm.verify <SHA256_HASH> <BASE64_SIGNATURE>
   version      = {v1.0.0},
   doi          = {10.5281/zenodo.23454877},
   url          = {[https://doi.org/10.5281/zenodo.23454877](https://doi.org/10.5281/zenodo.23454877)},
-  note         = {Prof. Ram Meghe Institute of Technology and Research. Guided by Dr. S. R. Gupta}
+  college      = {Prof. Ram Meghe Institute of Technology and Research.}
 }
 ```
 
