@@ -174,7 +174,7 @@ uv run python -m tpm.verify <SHA256_HASH> <BASE64_SIGNATURE>
   month        = oct,
   year         = {2026},
   publisher    = {Zenodo},
-  version      = {v1.0.0},
+  version      = {v0.0.3},
   doi          = {10.5281/zenodo.23454877},
   url          = {[https://doi.org/10.5281/zenodo.23454877](https://doi.org/10.5281/zenodo.23454877)},
 }
