@@ -166,6 +166,17 @@ uv run python -m tpm.verify <SHA256_HASH> <BASE64_SIGNATURE>
 
 ```
 
-
+@software{cvdllm_2026,
+  guide         = {Guided by Dr. S. R. Gupta}
+  author       = {Sudhanshu Atalkar and Zain Syed and Vedant Ghate and Parth Bhuskade},
+  title        = {cvdllm: Cryptographically Verifiable Deterministic LLM},
+  month        = oct,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {v1.0.0},
+  doi          = {10.5281/zenodo.23454877},
+  url          = {https://doi.org/10.5281/zenodo.23454877},
+  
+}
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23454877.svg)](https://doi.org/10.5281/zenodo.23454877)
