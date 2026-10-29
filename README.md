@@ -1,6 +1,6 @@
 ## Cryptographically Verifiable Deterministic LLM
 
-Traditional AI models are non-deterministic black boxes that lack audit trails and provenance. The **Cryptographically Verifiable Deterministic LLM (`cvdllm`)** solves this by bridging strict hardware-enforced determinism with hardware-backed cryptographic signing. By enforcing single-threaded CPU execution, zero temperature, and a fixed seed, the system guarantees a byte-for-byte identical output and SHA-256 hash across every run. Each response is bundled into a timestamped payload and securely signed using a physical **Trusted Platform Module (TPM)**. The result is absolute accountability: anyone can use the payload, signature, and public key to independently verify the exact integrity and authenticity of the AI's output down to the bit.
+Traditional AI models are non-deterministic black boxes that lack audit trails and provenance. The **Cryptographically Verifiable Deterministic LLM (`cvdllm`)** solves this by bridging strict hardware-enforced determinism with hardware-backed cryptographic signing. By enforcing single-threaded CPU execution, zero temperature, and a fixed seed, the system guarantees a byte-for-byte identical output and SHA-256 hash across every run. Each response is bundled into a timestamped payload and securely signed using a physical **Trusted Platform Module (TPM)**. The result is absolute accountability: anyone can use the payload, signature, and public key to independently verify the exact integrity and authenticity of the AI's output down to the bit size.
 
 
 
