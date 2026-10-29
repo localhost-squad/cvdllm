@@ -22,7 +22,7 @@ REPO_ID = os.getenv("REPO_ID")
 FILENAME = os.getenv("MODELNAME")
 context_length = int(os.getenv("context_length"))
 console = Console()
-
+# Prefer cached model files to avoid unnecessary network requests.
 def get_model_path() -> str:
     repo_id = os.getenv("REPO_ID")
     filename = os.getenv("MODELNAME")
