@@ -1,0 +1,8 @@
+uv run python -m cvdllm.determinism_test
+
+
+uv run cvdllm
+
+
+
+uv run python -m tpm.verify_signature <SHA256_HASH> <BASE64_SIGNATURE>
