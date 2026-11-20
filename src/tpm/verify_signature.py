@@ -7,12 +7,20 @@ from dotenv import load_dotenv
 import os
 import sys
 import base64
+import binascii
 from .read_public import read_tpm_public
 
 def verify_signature(hash_hex: str, sig_b64: str, public_key_b64: str) -> str:
-    digest = bytes.fromhex(hash_hex)
-    signature = base64.b64decode(sig_b64)
-    pem = base64.b64decode(public_key_b64)
+    # Strip any newlines, spaces, or tabs introduced by terminal line-wrapping
+    clean_sig_b64 = "".join(sig_b64.split())
+    clean_hash_hex = hash_hex.strip()
+
+    try:
+        digest = bytes.fromhex(clean_hash_hex)
+        signature = base64.b64decode(clean_sig_b64, validate=True)
+        pem = base64.b64decode(public_key_b64)
+    except (ValueError, binascii.Error):
+        return "false"
 
     pub = serialization.load_pem_public_key(pem)
 
@@ -27,8 +35,8 @@ def verify_signature(hash_hex: str, sig_b64: str, public_key_b64: str) -> str:
     except InvalidSignature:
         return "false"
 
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
+def main():
+    if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} <64_char_hex_hash> <signature_b64>", file=sys.stderr)
         sys.exit(1)
 
@@ -40,7 +48,9 @@ if __name__ == "__main__":
         print("ERROR: TPM_PUBLIC_KEY is not set in .env!", file=sys.stderr)
         sys.exit(1)
 
-    print(verify_signature(sys.argv[1], sys.argv[2], pub_key))
+    # Join all remaining arguments in case unquoted line breaks split the signature
+    raw_sig = "".join(sys.argv[2:])
+    print(verify_signature(sys.argv[1], raw_sig, pub_key))
 
-# usage
-# uv run python -m tpm.verify  2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 XCvCG3hLdkRDku5Z1dtpzlQ7MdGLRcDH4obvgGxFUlifFmWMRTmQE71+wIbml+2n987yuj3moLgd8MD9btSjeTreCtcchpvuNj97IrLgwugmuMd5PYU0iA0h4NuG1DvzHW4pKdTaXLDhRZGqbOOOHgBNiFAtw0F7GoP1wivErmwnD4dlpE82OOHV1PXB/zNbrLcwwVxkwF/PnRvQ7dtg88mL69YWFmPjukym+8e3wlINQQyXGjAPn3dzXH5ysiHGg1bG4aHBWnvFPxscq73aYdKCiVFbYZ2U7dIHdt2LryaJaZQjwC1oHJuXaycVkc4VTrb1VDAlTliCJvpqul7jYA==
+if __name__ == "__main__":
+    main()
